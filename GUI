@@ -1,0 +1,65 @@
+import sys
+import RPi.GPIO as GPIO
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLineEdit
+import time
+
+# Set up the GPIO pins as outputs
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(40, GPIO.OUT)
+
+# Define functions to control the LED
+def flash_morse_code(word):
+    morse_code = {'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.', 'G': '--.', 'H': '....',
+                  'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..', 'M': '--', 'N': '-.', 'O': '---', 'P': '.--.',
+                  'Q': '--.-', 'R': '.-.', 'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-',
+                  'Y': '-.--', 'Z': '--..'}
+
+    for char in word:
+        morse = morse_code.get(char.upper())
+        if morse:
+            for symbol in morse:
+                if symbol == '.':
+                    GPIO.output(40, GPIO.HIGH)
+                    time.sleep(0.2)
+                    GPIO.output(40, GPIO.LOW)
+                    time.sleep(0.2)
+                elif symbol == '-':
+                    GPIO.output(40, GPIO.HIGH)
+                    time.sleep(0.5)
+                    GPIO.output(40, GPIO.LOW)
+                    time.sleep(0.2)
+        else:
+            # ignore characters not in the morse code dictionary
+            pass
+
+def exit_gui():
+    GPIO.cleanup()
+    sys.exit()
+
+# Create the GUI window and layout
+app = QApplication(sys.argv)
+window = QWidget()
+layout = QVBoxLayout()
+
+# Create a text box and publish button
+text_box = QLineEdit()
+text_box.setMaxLength(12)
+
+publish_button = QPushButton('Publish')
+publish_button.clicked.connect(lambda: flash_morse_code(text_box.text()))
+
+# Create a button to exit the GUI
+exit_button = QPushButton('Exit')
+exit_button.clicked.connect(exit_gui)
+
+# Add the text box, publish button, and exit button to the layout
+layout.addWidget(text_box)
+layout.addWidget(publish_button)
+layout.addWidget(exit_button)
+
+# Set the layout for the window and show it
+window.setLayout(layout)
+window.show()
+
+# Start the application loop
+sys.exit(app.exec_())
